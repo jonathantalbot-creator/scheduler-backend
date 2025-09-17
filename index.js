@@ -26,12 +26,18 @@ const apiLimiter = rateLimit({
 // apply to all /api routes
 app.use('/api', apiLimiter);
 
-// ---- (optional) Supabase client if you're storing data) ----
+// ---- Supabase client (prefers service role on the server) ----
 const { createClient } = require('@supabase/supabase-js');
+
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
-const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY)
-  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE;
+
+// Use service role if present (server-side only). Falls back to anon if not set.
+const supabase = (SUPABASE_URL && (SUPABASE_SERVICE_ROLE || SUPABASE_ANON_KEY))
+  ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE || SUPABASE_ANON_KEY, {
+      auth: { persistSession: false }
+    })
   : null;
 
 // Health check
