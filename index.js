@@ -6,7 +6,13 @@ const rateLimit = require('express-rate-limit');
 const app = express();
 
 // 🔐 allow your frontend to call this API (adjust origin later if you have a specific domain)
-app.use(cors());
+// Lock CORS to the frontend origin from env
+const allowedOrigin = process.env.FRONTEND_ORIGIN || '*';
+app.use(cors({
+  origin: allowedOrigin,
+  methods: ['GET','POST','PUT','DELETE'],
+  credentials: true,
+}));
 app.use(express.json());
 
 // Basic rate limit: max 60 requests per minute per IP (adjust later if needed)
