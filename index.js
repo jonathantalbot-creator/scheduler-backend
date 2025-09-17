@@ -1,12 +1,24 @@
 // index.js
 const express = require('express');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 
 // 🔐 allow your frontend to call this API (adjust origin later if you have a specific domain)
 app.use(cors());
 app.use(express.json());
+
+// Basic rate limit: max 60 requests per minute per IP (adjust later if needed)
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true, // Return rate limit info in the RateLimit-* headers
+  legacyHeaders: false,  // Disable the X-RateLimit-* headers
+});
+
+// apply to all /api routes
+app.use('/api', apiLimiter);
 
 // ---- (optional) Supabase client if you're storing data) ----
 const { createClient } = require('@supabase/supabase-js');
