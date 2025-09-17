@@ -50,7 +50,29 @@ app.post('/api/appointments', async (req, res) => {
   if (error) return res.status(500).json({ error: error.message });
   res.status(201).json(data);
 });
+// ---- Google AI Studio (Gemini) route ----
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
+app.post('/api/ai', async (req, res) => {
+  try {
+    const prompt = (req.body && req.body.prompt) ? String(req.body.prompt) : '';
+    if (!prompt) return res.status(400).json({ error: 'Missing "prompt" in JSON body' });
+
+    const apiKey = process.env.GOOGLE_API_KEY;
+    if (!apiKey) return res.status(500).json({ error: 'GOOGLE_API_KEY not set' });
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+
+    res.json({ prompt, output: text });
+  } catch (err) {
+    console.error('AI route error:', err);
+    res.status(500).json({ error: 'AI generation failed' });
+  }
+});
 // Catch-all 404 for unknown API routes
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
